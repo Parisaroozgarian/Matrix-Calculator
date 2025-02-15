@@ -1,0 +1,451 @@
+/* Variables */
+
+:root {
+    /* Core Colors */
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --secondary-color: #64748b;
+    --accent-color: #06b6d4;
+    /* Light Theme */
+    --background-color: #f8fafc;
+    --surface-color: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --error-color: #ef4444;
+    --success-color: #22c55e;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --input-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+
+/* Dark Theme Colors */
+
+.dark-theme {
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    --input-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Reset & Base Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+    transition: all 0.3s ease;
+}
+
+
+/* Navbar Styles */
+
+.navbar {
+    background-color: var(--primary-color);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: var(--card-shadow);
+}
+
+.navbar-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.navbar-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.navbar-brand h1 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Calculator Container */
+
+.calculator-container {
+    background-color: var(--surface-color);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    padding: 2.5rem;
+    margin: 2rem auto;
+    max-width: 800px;
+    transition: all 0.3s ease;
+}
+
+.calculator-container:hover {
+    box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.15);
+}
+
+.calculator-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.calculator-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.calculator-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+
+/* Form Elements */
+
+.calculator-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.input-group label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.matrix-input,
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background-color: var(--surface-color);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    box-shadow: var(--input-shadow);
+}
+
+.matrix-input {
+    font-family: 'Courier New', monospace;
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.matrix-input:focus,
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.help-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+
+/* Submit Button */
+
+.submit-button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.submit-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.button-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.2s ease;
+}
+
+.submit-button:hover .button-icon {
+    transform: translateX(4px);
+}
+
+
+/* Result Container */
+
+.result-container {
+    background-color: var(--surface-color);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    padding: 2.5rem;
+    margin: 2rem auto;
+    max-width: 800px;
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.result-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.result-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.result-content {
+    background-color: var(--background-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid var(--border-color);
+}
+
+.result-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.result-value {
+    font-family: 'Courier New', monospace;
+    background-color: var(--surface-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+
+/* Modal Styles */
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background-color: var(--surface-color);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    margin: auto;
+    overflow-y: auto;
+    animation: modalSlideUp 0.3s ease;
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-modal:hover {
+    color: var(--text-primary);
+}
+
+
+/* Documentation Styles */
+
+.doc-section {
+    margin-bottom: 2.5rem;
+}
+
+.doc-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.doc-section h4 {
+    font-size: 1.2rem;
+    margin: 1.5rem 0 1rem;
+    color: var(--text-primary);
+}
+
+.code-example {
+    background-color: var(--background-color);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin: 1rem 0;
+    font-family: 'Courier New', monospace;
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .navbar-menu {
+        position: fixed;
+        top: 4rem;
+        left: 0;
+        right: 0;
+        background-color: var(--primary-color);
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    .navbar-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+    .nav-link {
+        width: 100%;
+        padding: 0.75rem;
+        justify-content: center;
+    }
+    .menu-toggle {
+        display: block;
+        background: none;
+        border: none;
+        color: white;
+        padding: 0.5rem;
+        cursor: pointer;
+    }
+}
+
+.submit-button {
+    /* ... */
+    transition: all 0.2s ease;
+}
+
+.submit-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+.button-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    transition: transform 0.2s ease;
+}
+
+.submit-button:hover .button-icon {
+    transform: translateX(4px);
+}
+
+
+/* Print Styles */
+
+@media print {
+    .navbar,
+    .calculator-container,
+    .submit-button {
+        display: none;
+    }
+    .result-container {
+        box-shadow: none;
+        padding: 0;
+    }
+    .result-content {
+        border: none;
+    }
+}
