@@ -93,9 +93,10 @@ def validate_matrices(matrix1, matrix2=None, operation=None):
         if matrix1.shape[0] != matrix1.shape[1]:
             raise ValueError(f"Square matrix required for {operation}")
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', "POST"])
 def index():
     result = None
+    result_type = None
     errors = []
     recent_calculations = []
 
@@ -146,8 +147,27 @@ def index():
                 eigenvals, eigenvecs = np.linalg.eig(matrix1)
                 result = f"Eigenvalues:\n{eigenvals}\n\nEigenvectors:\n{eigenvecs}"
 
+            # Store the type of result
+            if operation in ["determinant"]:
+                result_type = "scalar"
+            elif operation in ["eigenvalues", "eigenvectors"]:
+                result_type = "special"
+            else:
+                result_type = "matrix"
+
+            # Convert result to JSON-serializable format before template rendering
+            if result is not None:
+                if result_type == "matrix":
+                    result = matrix_to_json(result)
+                elif result_type == "special":
+                    # Keep the string format for eigenvalues/vectors
+                    pass
+                else:
+                    # For scalar results
+                    result = float(result)
+
             logger.debug(f"Operation: {operation}")
-            logger.debug(f"Result type: {type(result)}")
+            logger.debug(f"Result type: {result_type}")
             logger.debug(f"Result: {result}")
 
             try:
@@ -180,6 +200,7 @@ def index():
 
     return render_template('index.html',
                          result=result,
+                         result_type=result_type,
                          errors=errors,
                          recent_calculations=recent_calculations)
 
