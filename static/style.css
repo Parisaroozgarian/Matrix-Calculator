@@ -1,9 +1,11 @@
 /* Variables */
 :root {
+    /* Core Colors */
     --primary-color: #4f46e5;
     --primary-hover: #4338ca;
     --secondary-color: #64748b;
     --accent-color: #06b6d4;
+    /* Light Theme */
     --background-color: #f8fafc;
     --surface-color: #ffffff;
     --text-primary: #1e293b;
@@ -15,12 +17,31 @@
     --input-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Base Styles */
+/* Dark Theme Colors */
+.dark-theme {
+    --background-color: #0f172a;
+    --surface-color: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    --input-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Reset & Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--background-color);
     color: var(--text-primary);
     line-height: 1.5;
+    min-height: 100vh;
+    transition: all 0.3s ease;
 }
 
 /* Form Elements */
@@ -69,6 +90,45 @@ pre {
     border-bottom: 1px solid var(--border-color);
 }
 
+/* Result Container */
+.result-container {
+    background-color: var(--surface-color);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    padding: 2.5rem;
+    margin: 2rem auto;
+    max-width: 800px;
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Documentation Styles */
+.doc-section {
+    margin-bottom: 2.5rem;
+}
+
+.doc-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.doc-section h4 {
+    font-size: 1.2rem;
+    margin: 1.5rem 0 1rem;
+    color: var(--text-primary);
+}
+
 /* Print Styles */
 @media print {
     .navbar,
@@ -77,11 +137,11 @@ pre {
     .btn-print {
         display: none !important;
     }
-    
+
     .result-container {
         box-shadow: none !important;
     }
-    
+
     pre {
         border: 1px solid #ddd !important;
     }
@@ -93,10 +153,46 @@ pre {
         padding-left: 1rem;
         padding-right: 1rem;
     }
-    
+
     .card {
         margin-left: -0.5rem;
         margin-right: -0.5rem;
         border-radius: 0;
+    }
+
+    .navbar-menu {
+        position: fixed;
+        top: 4rem;
+        left: 0;
+        right: 0;
+        background-color: var(--primary-color);
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .navbar-menu.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .nav-link {
+        width: 100%;
+        padding: 0.75rem;
+        justify-content: center;
+    }
+
+    .menu-toggle {
+        display: block;
+        background: none;
+        border: none;
+        color: white;
+        padding: 0.5rem;
+        cursor: pointer;
     }
 }
