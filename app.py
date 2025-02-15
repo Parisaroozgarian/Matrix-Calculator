@@ -57,6 +57,9 @@ def parse_matrix(matrix_str):
 
 def validate_matrices(matrix1, matrix2=None, operation=None):
     """Validate matrices based on the operation."""
+    if matrix1 is None:
+        raise ValueError("First matrix is required")
+
     if operation in ["add", "subtract", "multiply"]:
         if matrix2 is None:
             raise ValueError("Second matrix is required for this operation")
@@ -80,8 +83,8 @@ def index():
     errors = []
     recent_calculations = []
 
-    if request.method == 'POST':
-        try:
+    try:
+        if request.method == 'POST':
             # Get form inputs
             matrix1_str = request.form.get('matrix1')
             matrix2_str = request.form.get('matrix2')
@@ -133,20 +136,25 @@ def index():
             else:
                 formatted_result = result
 
-            # Save calculation to database
-            calc = MatrixCalculation(
-                matrix1=matrix1.tolist(),
-                matrix2=matrix2.tolist() if matrix2 is not None else None,
-                scalar=scalar,
-                operation=operation,
-                result=formatted_result if isinstance(result, str) else result.tolist() if isinstance(result, np.ndarray) else float(result)
-            )
-            db.session.add(calc)
-            db.session.commit()
+            try:
+                # Save calculation to database
+                calc = MatrixCalculation(
+                    matrix1=matrix1.tolist(),
+                    matrix2=matrix2.tolist() if matrix2 is not None else None,
+                    scalar=scalar,
+                    operation=operation,
+                    result=formatted_result if isinstance(result, str) else result.tolist() if isinstance(result, np.ndarray) else float(result)
+                )
+                db.session.add(calc)
+                db.session.commit()
+            except Exception as db_error:
+                logger.error(f"Database error: {str(db_error)}")
+                # Continue without saving to database
+                pass
 
-        except Exception as e:
-            errors.append(str(e))
-            logger.error(f"Error in calculation: {str(e)}")
+    except Exception as e:
+        errors.append(str(e))
+        logger.error(f"Error in calculation: {str(e)}")
 
     # Get recent calculations for display
     try:
