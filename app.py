@@ -130,11 +130,14 @@ def index():
                 eigenvals, eigenvecs = np.linalg.eig(matrix1)
                 result = f"Eigenvalues:\n{eigenvals}\n\nEigenvectors:\n{eigenvecs}"
 
-            # Format result for display
-            if isinstance(result, (np.ndarray, float, complex)):
-                formatted_result = str(result)
-            else:
-                formatted_result = result
+            # Convert result to string representation
+            if isinstance(result, np.ndarray):
+                result = result.tolist()
+            elif isinstance(result, (float, complex)):
+                result = float(result)
+
+            # Format the string representation
+            formatted_result = str(result)
 
             try:
                 # Save calculation to database
@@ -143,7 +146,7 @@ def index():
                     matrix2=matrix2.tolist() if matrix2 is not None else None,
                     scalar=scalar,
                     operation=operation,
-                    result=formatted_result if isinstance(result, str) else result.tolist() if isinstance(result, np.ndarray) else float(result)
+                    result=result if isinstance(result, (str, list)) else float(result)
                 )
                 db.session.add(calc)
                 db.session.commit()
@@ -165,7 +168,7 @@ def index():
         recent_calculations = []
 
     return render_template('index.html',
-                         result=result,
+                         result=formatted_result if 'formatted_result' in locals() else None,
                          errors=errors,
                          recent_calculations=recent_calculations)
 
