@@ -33,15 +33,20 @@ from models import MatrixCalculation  # noqa: E402
 with app.app_context():
     db.create_all()
 
-class NumpyJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        if isinstance(obj, np.float64):
-            return float(obj)
-        return super().default(obj)
+def matrix_to_json(matrix):
+    """Convert numpy matrix to JSON-serializable format."""
+    if isinstance(matrix, np.ndarray):
+        return matrix.tolist()
+    elif isinstance(matrix, (float, np.float64)):
+        return float(matrix)
+    elif isinstance(matrix, (complex, np.complex128)):
+        return str(matrix)
+    return matrix
 
-app.json_encoder = NumpyJSONEncoder
+@app.template_filter('tojson')
+def tojson_filter(obj):
+    """Custom tojson filter that handles numpy arrays."""
+    return json.dumps(matrix_to_json(obj))
 
 # Previous functions remain unchanged
 def parse_matrix(matrix_str):
@@ -94,7 +99,6 @@ def index():
     result = None
     errors = []
     recent_calculations = []
-    formatted_result = None
 
     try:
         if request.method == 'POST':
@@ -143,22 +147,18 @@ def index():
                 eigenvals, eigenvecs = np.linalg.eig(matrix1)
                 result = f"Eigenvalues:\n{eigenvals}\n\nEigenvectors:\n{eigenvecs}"
 
-            # Convert result to a format suitable for both display and visualization
-            if isinstance(result, np.ndarray):
-                formatted_result = json.dumps(result.tolist(), cls=NumpyJSONEncoder)
-            elif isinstance(result, (float, complex)):
-                formatted_result = str(float(result))
-            else:
-                formatted_result = str(result)
+            logger.debug(f"Operation: {operation}")
+            logger.debug(f"Result type: {type(result)}")
+            logger.debug(f"Result: {result}")
 
             try:
                 # Save calculation to database
                 calc = MatrixCalculation(
-                    matrix1=matrix1.tolist(),
-                    matrix2=matrix2.tolist() if matrix2 is not None else None,
+                    matrix1=matrix_to_json(matrix1),
+                    matrix2=matrix_to_json(matrix2) if matrix2 is not None else None,
                     scalar=scalar,
                     operation=operation,
-                    result=result if isinstance(result, (str, list)) else float(result)
+                    result=matrix_to_json(result)
                 )
                 db.session.add(calc)
                 db.session.commit()
@@ -180,7 +180,7 @@ def index():
         recent_calculations = []
 
     return render_template('index.html',
-                         result=formatted_result,
+                         result=result,
                          errors=errors,
                          recent_calculations=recent_calculations)
 

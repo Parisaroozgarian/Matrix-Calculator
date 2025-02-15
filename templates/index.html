@@ -150,19 +150,19 @@
                         {% if request.form.get('matrix1') %}
                         <div class="col-md-6 mb-3">
                             <h6 class="text-center">Matrix 1</h6>
-                            <canvas id="matrix1Visualization" width="400" height="400"></canvas>
+                            <canvas id="matrix1Visualization"></canvas>
                         </div>
                         {% endif %}
                         {% if request.form.get('matrix2') %}
                         <div class="col-md-6 mb-3">
                             <h6 class="text-center">Matrix 2</h6>
-                            <canvas id="matrix2Visualization" width="400" height="400"></canvas>
+                            <canvas id="matrix2Visualization"></canvas>
                         </div>
                         {% endif %}
-                        {% if result and not request.form.get('operation') in ['determinant', 'eigenvalues'] %}
+                        {% if result and request.form.get('operation') not in ['determinant', 'eigenvalues', 'eigenvectors'] %}
                         <div class="col-md-12 mb-3">
                             <h6 class="text-center">Result Matrix</h6>
-                            <canvas id="resultVisualization" width="400" height="400"></canvas>
+                            <canvas id="resultVisualization"></canvas>
                         </div>
                         {% endif %}
                     </div>
@@ -172,11 +172,6 @@
                 <div class="bg-light p-3 rounded">
                     <h6 class="mb-3 fw-semibold">Numerical Output:</h6>
                     <pre class="mb-0 bg-white p-3 rounded border font-monospace">{{ result }}</pre>
-                </div>
-                <div class="text-center mt-3">
-                    <button onclick="window.print()" class="btn btn-outline-primary">
-                        <i class="bi bi-printer me-2"></i>Print Result
-                    </button>
                 </div>
             </div>
         </div>
@@ -262,54 +257,113 @@ For a 2×3 matrix: [[1, 2, 3], [4, 5, 6]]</code></pre>
 
     <!-- Matrix Visualization Script -->
     <script>
-        function visualizeMatrix(canvasId, matrixData, title) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            const matrix = JSON.parse(matrixData.replace(/'/g, '"'));
+        function visualizeMatrix(canvasId, matrixStr, title) {
+            try {
+                console.log('Visualizing matrix:', matrixStr);
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) {
+                    console.error('Canvas not found:', canvasId);
+                    return;
+                }
 
-            const data = {
-                labels: Array.from({length: matrix[0].length}, (_, i) => `Col ${i+1}`),
-                datasets: matrix.map((row, i) => ({
-                    label: `Row ${i+1}`,
-                    data: row,
-                    backgroundColor: `hsla(${360 * i / matrix.length}, 70%, 50%, 0.2)`,
-                    borderColor: `hsla(${360 * i / matrix.length}, 70%, 50%, 1)`,
-                    borderWidth: 1
-                }))
-            };
+                const ctx = canvas.getContext('2d');
+                let matrix;
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: data,
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: title
+                try {
+                    // Handle both string and JSON formats
+                    matrix = typeof matrixStr === 'string' ? 
+                        JSON.parse(matrixStr.replace(/'/g, '"')) : matrixStr;
+
+                    console.log('Parsed matrix:', matrix);
+
+                    if (!Array.isArray(matrix) || !Array.isArray(matrix[0])) {
+                        console.error('Invalid matrix format:', matrix);
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error parsing matrix:', e);
+                    return;
+                }
+
+                const data = {
+                    labels: Array.from({length: matrix[0].length}, (_, i) => `Col ${i+1}`),
+                    datasets: matrix.map((row, i) => ({
+                        label: `Row ${i+1}`,
+                        data: row,
+                        backgroundColor: `hsla(${360 * i / matrix.length}, 70%, 50%, 0.2)`,
+                        borderColor: `hsla(${360 * i / matrix.length}, 70%, 50%, 1)`,
+                        borderWidth: 1,
+                        barPercentage: 0.8,
+                    }))
+                };
+
+                // Destroy existing chart if it exists
+                if (window.matrixCharts && window.matrixCharts[canvasId]) {
+                    window.matrixCharts[canvasId].destroy();
+                }
+
+                // Initialize charts storage if not exists
+                if (!window.matrixCharts) {
+                    window.matrixCharts = {};
+                }
+
+                // Create and store new chart
+                window.matrixCharts[canvasId] = new Chart(ctx, {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: title,
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (e) {
+                console.error('Visualization error:', e);
+            }
         }
 
-        {% if result %}
-            {% if request.form.get('matrix1') %}
-                visualizeMatrix('matrix1Visualization', '{{ request.form.get("matrix1") }}', 'Matrix 1');
-            {% endif %}
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if result %}
+                console.log('Initializing visualizations...');
 
-            {% if request.form.get('matrix2') %}
-                visualizeMatrix('matrix2Visualization', '{{ request.form.get("matrix2") }}', 'Matrix 2');
-            {% endif %}
+                {% if request.form.get('matrix1') %}
+                    visualizeMatrix('matrix1Visualization', {{ request.form.get('matrix1')|tojson|safe }}, 'Matrix 1');
+                {% endif %}
 
-            {% if result and not request.form.get('operation') in ['determinant', 'eigenvalues'] %}
-                visualizeMatrix('resultVisualization', '{{ result|tojson }}', 'Result Matrix');
+                {% if request.form.get('matrix2') %}
+                    visualizeMatrix('matrix2Visualization', {{ request.form.get('matrix2')|tojson|safe }}, 'Matrix 2');
+                {% endif %}
+
+                {% if result and request.form.get('operation') not in ['determinant', 'eigenvalues', 'eigenvectors'] %}
+                    visualizeMatrix('resultVisualization', {{ result|safe }}, 'Result Matrix');
+                {% endif %}
             {% endif %}
-        {% endif %}
+        });
     </script>
     <script>
         {% if result %}
