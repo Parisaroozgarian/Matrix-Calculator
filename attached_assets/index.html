@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Calculator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i>
+                Matrix Calculator
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="bi bi-calculator me-1"></i>Calculator</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#docModal">
+                            <i class="bi bi-book me-1"></i>Documentation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/Parisaroozgarian/MatrixAddition/tree/main/MatrixOperations">
+                            <i class="bi bi-github me-1"></i>GitHub
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Calculator Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h4 class="card-title mb-0 text-center">Matrix Operations</h4>
+                <p class="text-muted text-center mb-0 mt-2">Perform complex matrix calculations with ease</p>
+            </div>
+            <div class="card-body">
+                {% if errors %}
+                <div class="alert alert-danger" role="alert">
+                    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle me-2"></i>Please check your input:</h5>
+                    <ul class="mb-0">
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form action="{{ url_for('index') }}" method="POST" id="matrixForm">
+                    <!-- Matrix 1 Input -->
+                    <div class="mb-4">
+                        <label for="matrix1" class="form-label fw-semibold">Matrix 1</label>
+                        <textarea 
+                            class="form-control font-monospace"
+                            name="matrix1" 
+                            id="matrix1" 
+                            rows="4"
+                            placeholder="Enter matrix like: [[1, 2], [3, 4]] or [[1, 2, 3], [4, 5, 6]]"
+                            required>{{ request.form.get('matrix1') }}</textarea>
+                        <div class="form-text">Enter your first matrix using nested brackets</div>
+                    </div>
+
+                    <!-- Matrix 2 Input -->
+                    <div class="mb-4">
+                        <label for="matrix2" class="form-label fw-semibold">Matrix 2 (Optional)</label>
+                        <textarea 
+                            class="form-control font-monospace"
+                            name="matrix2" 
+                            id="matrix2" 
+                            rows="4"
+                            placeholder="Enter your matrix like: [[5, 6], [7, 8]]">{{ request.form.get('matrix2') }}</textarea>
+                        <div class="form-text">Required for addition, subtraction, and multiplication operations</div>
+                    </div>
+
+                    <!-- Scalar Input -->
+                    <div class="mb-4">
+                        <label for="scalar" class="form-label fw-semibold">Scalar Value (Optional)</label>
+                        <input 
+                            type="number"
+                            class="form-control"
+                            name="scalar" 
+                            id="scalar" 
+                            placeholder="Enter any number"
+                            step="any"
+                            value="{{ request.form.get('scalar') }}">
+                        <div class="form-text">Required only for scalar multiplication</div>
+                    </div>
+
+                    <!-- Operation Selection -->
+                    <div class="mb-4">
+                        <label for="operation" class="form-label fw-semibold">Operation</label>
+                        <select class="form-select" name="operation" id="operation" required>
+                            <optgroup label="Basic Operations">
+                                <option value="add">Addition</option>
+                                <option value="subtract">Subtraction</option>
+                                <option value="multiply">Element-wise Multiplication</option>
+                                <option value="matmul">Matrix Multiplication</option>
+                            </optgroup>
+                            <optgroup label="Single Matrix Operations">
+                                <option value="transpose">Transpose</option>
+                                <option value="scalar_multiply">Scalar Multiplication</option>
+                                <option value="determinant">Determinant</option>
+                                <option value="inverse">Inverse</option>
+                            </optgroup>
+                            <optgroup label="Advanced Operations">
+                                <option value="eigenvalues">Eigenvalues</option>
+                                <option value="eigenvectors">Eigenvectors</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-calculator me-2"></i>Calculate
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        {% if result %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h4 class="card-title mb-0 text-center">Calculation Result</h4>
+                <p class="text-muted text-center mb-0 mt-2">Here's what we computed for you</p>
+            </div>
+            <div class="card-body">
+                <div class="bg-light p-3 rounded">
+                    <h6 class="mb-3 fw-semibold">Output:</h6>
+                    <pre class="mb-0 bg-white p-3 rounded border font-monospace">{{ result }}</pre>
+                </div>
+                <div class="text-center mt-3">
+                    <button onclick="window.print()" class="btn btn-outline-primary">
+                        <i class="bi bi-printer me-2"></i>Print Result
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Documentation Modal -->
+    <div class="modal fade" id="docModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Matrix Calculator Documentation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <h5>Matrix Input Format</h5>
+                        <p>Enter your matrices using nested square brackets with numbers separated by commas:</p>
+                        <pre class="bg-light p-3 rounded"><code>For a 2×2 matrix: [[1, 2], [3, 4]]
+For a 3×3 matrix: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+For a 2×3 matrix: [[1, 2, 3], [4, 5, 6]]</code></pre>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Matrix Operations Guide</h5>
+                        <div class="mb-3">
+                            <h6 class="fw-bold">Basic Operations</h6>
+                            <ul class="list-unstyled ps-3">
+                                <li><i class="bi bi-plus-circle me-2"></i><strong>Addition (+)</strong> - Combines two matrices of the same size</li>
+                                <li><i class="bi bi-dash-circle me-2"></i><strong>Subtraction (-)</strong> - Subtracts corresponding elements</li>
+                                <li><i class="bi bi-x-circle me-2"></i><strong>Element-wise Multiplication (*)</strong> - Multiplies corresponding elements</li>
+                                <li><i class="bi bi-asterisk me-2"></i><strong>Matrix Multiplication (@)</strong> - Standard matrix multiplication</li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="fw-bold">Single Matrix Operations</h6>
+                            <ul class="list-unstyled ps-3">
+                                <li><i class="bi bi-arrow-repeat me-2"></i><strong>Transpose</strong> - Flips matrix over its diagonal</li>
+                                <li><i class="bi bi-calculator me-2"></i><strong>Scalar Multiplication</strong> - Multiplies by a number</li>
+                                <li><i class="bi bi-braces me-2"></i><strong>Determinant</strong> - Calculates determinant</li>
+                                <li><i class="bi bi-arrow-clockwise me-2"></i><strong>Inverse</strong> - Finds inverse matrix</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5>Matrix Size Requirements</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <h6 class="mb-2">Addition, Subtraction, Element-wise Multiplication</h6>
+                                <p class="mb-0 text-muted">Both matrices must have exactly the same dimensions</p>
+                            </li>
+                            <li class="list-group-item">
+                                <h6 class="mb-2">Matrix Multiplication (A @ B)</h6>
+                                <p class="mb-0 text-muted">Number of columns in A must equal number of rows in B</p>
+                            </li>
+                            <li class="list-group-item">
+                                <h6 class="mb-2">Determinant, Inverse, Eigenvalues, Eigenvectors</h6>
+                                <p class="mb-0 text-muted">Matrix must be square (same number of rows and columns)</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script>
+        {% if result %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const resultCard = document.querySelector('.card:last-child');
+            if (resultCard) {
+                resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+        {% endif %}
+    </script>
+</body>
+</html>
