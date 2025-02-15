@@ -149,20 +149,26 @@
                     <div class="row">
                         {% if request.form.get('matrix1') %}
                         <div class="col-md-6 mb-3">
-                            <h6 class="text-center">Matrix 1</h6>
-                            <canvas id="matrix1Visualization"></canvas>
+                            <div style="height: 300px;">
+                                <h6 class="text-center">Matrix 1</h6>
+                                <canvas id="matrix1Visualization"></canvas>
+                            </div>
                         </div>
                         {% endif %}
                         {% if request.form.get('matrix2') %}
                         <div class="col-md-6 mb-3">
-                            <h6 class="text-center">Matrix 2</h6>
-                            <canvas id="matrix2Visualization"></canvas>
+                            <div style="height: 300px;">
+                                <h6 class="text-center">Matrix 2</h6>
+                                <canvas id="matrix2Visualization"></canvas>
+                            </div>
                         </div>
                         {% endif %}
                         {% if result and request.form.get('operation') not in ['determinant', 'eigenvalues', 'eigenvectors'] %}
                         <div class="col-md-12 mb-3">
-                            <h6 class="text-center">Result Matrix</h6>
-                            <canvas id="resultVisualization"></canvas>
+                            <div style="height: 300px;">
+                                <h6 class="text-center">Result Matrix</h6>
+                                <canvas id="resultVisualization"></canvas>
+                            </div>
                         </div>
                         {% endif %}
                     </div>
@@ -270,11 +276,8 @@ For a 2×3 matrix: [[1, 2, 3], [4, 5, 6]]</code></pre>
                 let matrix;
 
                 try {
-                    // Handle both string and JSON formats
                     matrix = typeof matrixStr === 'string' ? 
                         JSON.parse(matrixStr.replace(/'/g, '"')) : matrixStr;
-
-                    console.log('Parsed matrix:', matrix);
 
                     if (!Array.isArray(matrix) || !Array.isArray(matrix[0])) {
                         console.error('Invalid matrix format:', matrix);
@@ -283,6 +286,16 @@ For a 2×3 matrix: [[1, 2, 3], [4, 5, 6]]</code></pre>
                 } catch (e) {
                     console.error('Error parsing matrix:', e);
                     return;
+                }
+
+                // Destroy existing chart if it exists
+                if (window.matrixCharts && window.matrixCharts[canvasId]) {
+                    window.matrixCharts[canvasId].destroy();
+                }
+
+                // Initialize charts storage if not exists
+                if (!window.matrixCharts) {
+                    window.matrixCharts = {};
                 }
 
                 const data = {
@@ -296,16 +309,6 @@ For a 2×3 matrix: [[1, 2, 3], [4, 5, 6]]</code></pre>
                         barPercentage: 0.8,
                     }))
                 };
-
-                // Destroy existing chart if it exists
-                if (window.matrixCharts && window.matrixCharts[canvasId]) {
-                    window.matrixCharts[canvasId].destroy();
-                }
-
-                // Initialize charts storage if not exists
-                if (!window.matrixCharts) {
-                    window.matrixCharts = {};
-                }
 
                 // Create and store new chart
                 window.matrixCharts[canvasId] = new Chart(ctx, {
@@ -360,7 +363,7 @@ For a 2×3 matrix: [[1, 2, 3], [4, 5, 6]]</code></pre>
                 {% endif %}
 
                 {% if result and request.form.get('operation') not in ['determinant', 'eigenvalues', 'eigenvectors'] %}
-                    visualizeMatrix('resultVisualization', {{ result|safe }}, 'Result Matrix');
+                    visualizeMatrix('resultVisualization', {{ result|tojson|safe }}, 'Result Matrix');
                 {% endif %}
             {% endif %}
         });

@@ -48,7 +48,6 @@ def tojson_filter(obj):
     """Custom tojson filter that handles numpy arrays."""
     return json.dumps(matrix_to_json(obj))
 
-# Previous functions remain unchanged
 def parse_matrix(matrix_str):
     """Parse a string representation of a matrix into a numpy array."""
     try:
@@ -138,7 +137,7 @@ def index():
                     raise ValueError("Scalar value is required for scalar multiplication")
                 result = np.multiply(matrix1, scalar)
             elif operation == "determinant":
-                result = np.linalg.det(matrix1)
+                result = float(np.linalg.det(matrix1))
             elif operation == "inverse":
                 result = np.linalg.inv(matrix1)
             elif operation == "eigenvalues":
