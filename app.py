@@ -1,32 +1,55 @@
-from flask import Flask, render_template, request
+import os
+from datetime import datetime
+from flask import Flask, render_template, request, jsonify
 import numpy as np
 import ast
 import logging
+from flask_sqlalchemy import SQLAlchemy
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Initialize Flask
 app = Flask(__name__)
-app.secret_key = "dev"  # For development - in production use environment variable
+app.secret_key = os.environ.get("SESSION_SECRET", "dev")
+
+# Configure SQLAlchemy
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize SQLAlchemy
+db = SQLAlchemy()
+db.init_app(app)
+
+# Import models after db initialization to avoid circular imports
+from models import MatrixCalculation  # noqa: E402
+
+# Create tables
+with app.app_context():
+    db.create_all()
 
 def parse_matrix(matrix_str):
     """Parse a string representation of a matrix into a numpy array."""
     try:
         if not matrix_str or matrix_str.isspace():
             return None
-            
+
         # Parse string to Python list
         matrix = ast.literal_eval(matrix_str)
-        
+
         # Validate structure
         if not isinstance(matrix, (list, tuple)) or not all(
                 isinstance(row, (list, tuple)) for row in matrix):
             raise ValueError("Matrix must be a list of lists")
-            
+
         # Convert to numpy array
         return np.array(matrix, dtype=float)
-        
+
     except (ValueError, SyntaxError) as e:
         raise ValueError(
             f"Invalid matrix format: {str(e)}. Use format like [[1, 2], [3, 4]]")
@@ -40,14 +63,14 @@ def validate_matrices(matrix1, matrix2=None, operation=None):
             raise ValueError("Second matrix is required for this operation")
         if matrix1.shape != matrix2.shape:
             raise ValueError(f"Matrices must have same shape for {operation}")
-            
+
     elif operation == "matmul":
         if matrix2 is None:
             raise ValueError("Second matrix is required for matrix multiplication")
         if matrix1.shape[1] != matrix2.shape[0]:
             raise ValueError(
                 f"Matrix shapes incompatible for multiplication: {matrix1.shape} and {matrix2.shape}")
-                
+
     elif operation in ["determinant", "inverse", "eigenvalues", "eigenvectors"]:
         if matrix1.shape[0] != matrix1.shape[1]:
             raise ValueError(f"Square matrix required for {operation}")
@@ -56,7 +79,8 @@ def validate_matrices(matrix1, matrix2=None, operation=None):
 def index():
     result = None
     errors = []
-    
+    recent_calculations = []
+
     if request.method == 'POST':
         try:
             # Get form inputs
@@ -64,21 +88,21 @@ def index():
             matrix2_str = request.form.get('matrix2')
             scalar_str = request.form.get('scalar')
             operation = request.form.get('operation')
-            
+
             # Parse first matrix (required for all operations)
             matrix1 = parse_matrix(matrix1_str)
             if matrix1 is None:
                 raise ValueError("First matrix is required")
-                
+
             # Parse second matrix (if provided)
             matrix2 = parse_matrix(matrix2_str) if matrix2_str else None
-            
+
             # Parse scalar (if provided)
             scalar = float(scalar_str) if scalar_str else None
-            
+
             # Validate matrices based on operation
             validate_matrices(matrix1, matrix2, operation)
-            
+
             # Perform calculations
             if operation == "add":
                 result = np.add(matrix1, matrix2)
@@ -103,16 +127,40 @@ def index():
             elif operation == "eigenvectors":
                 eigenvals, eigenvecs = np.linalg.eig(matrix1)
                 result = f"Eigenvalues:\n{eigenvals}\n\nEigenvectors:\n{eigenvecs}"
-                
+
             # Format result for display
             if isinstance(result, (np.ndarray, float, complex)):
-                result = str(result)
-                
+                formatted_result = str(result)
+            else:
+                formatted_result = result
+
+            # Save calculation to database
+            calc = MatrixCalculation(
+                matrix1=matrix1.tolist(),
+                matrix2=matrix2.tolist() if matrix2 is not None else None,
+                scalar=scalar,
+                operation=operation,
+                result=formatted_result if isinstance(result, str) else result.tolist() if isinstance(result, np.ndarray) else float(result)
+            )
+            db.session.add(calc)
+            db.session.commit()
+
         except Exception as e:
             errors.append(str(e))
             logger.error(f"Error in calculation: {str(e)}")
-            
-    return render_template('index.html', result=result, errors=errors)
+
+    # Get recent calculations for display
+    try:
+        recent_calculations = MatrixCalculation.query.order_by(
+            MatrixCalculation.created_at.desc()).limit(5).all()
+    except Exception as e:
+        logger.error(f"Error fetching recent calculations: {str(e)}")
+        recent_calculations = []
+
+    return render_template('index.html',
+                         result=result,
+                         errors=errors,
+                         recent_calculations=recent_calculations)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
