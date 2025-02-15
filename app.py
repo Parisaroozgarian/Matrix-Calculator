@@ -3,6 +3,7 @@ from flask import Flask, render_template, request
 import numpy as np
 import ast
 import logging
+import json
 from flask_sqlalchemy import SQLAlchemy
 
 # Configure logging
@@ -32,6 +33,17 @@ from models import MatrixCalculation  # noqa: E402
 with app.app_context():
     db.create_all()
 
+class NumpyJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, np.float64):
+            return float(obj)
+        return super().default(obj)
+
+app.json_encoder = NumpyJSONEncoder
+
+# Previous functions remain unchanged
 def parse_matrix(matrix_str):
     """Parse a string representation of a matrix into a numpy array."""
     try:
@@ -82,6 +94,7 @@ def index():
     result = None
     errors = []
     recent_calculations = []
+    formatted_result = None
 
     try:
         if request.method == 'POST':
@@ -130,14 +143,13 @@ def index():
                 eigenvals, eigenvecs = np.linalg.eig(matrix1)
                 result = f"Eigenvalues:\n{eigenvals}\n\nEigenvectors:\n{eigenvecs}"
 
-            # Convert result to string representation
+            # Convert result to a format suitable for both display and visualization
             if isinstance(result, np.ndarray):
-                result = result.tolist()
+                formatted_result = json.dumps(result.tolist(), cls=NumpyJSONEncoder)
             elif isinstance(result, (float, complex)):
-                result = float(result)
-
-            # Format the string representation
-            formatted_result = str(result)
+                formatted_result = str(float(result))
+            else:
+                formatted_result = str(result)
 
             try:
                 # Save calculation to database
@@ -168,7 +180,7 @@ def index():
         recent_calculations = []
 
     return render_template('index.html',
-                         result=formatted_result if 'formatted_result' in locals() else None,
+                         result=formatted_result,
                          errors=errors,
                          recent_calculations=recent_calculations)
 
