@@ -6,6 +6,7 @@ import logging
 import json
 from flask_sqlalchemy import SQLAlchemy
 
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
